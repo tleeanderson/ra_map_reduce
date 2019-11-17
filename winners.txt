@@ -1,0 +1,6 @@
+team,wins,losses
+nebraska,4,0
+miami,2,2
+georgia,1,3
+michigan,1,3
+alabama,2,2
