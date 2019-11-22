@@ -25,6 +25,20 @@
         reduce-stage (map (fn [[k v]] (reduce-func k v)) group-stage)]
     reduce-stage))
 
+(defn reduce-identity [key vals]
+  [key vals])
+
+(defn select [cond-func]
+  {:map (fn [record] (if (cond-func record)
+                       ["passed" record]
+                       ["failed" (record :offset)]))
+   :reduce reduce-identity})
+
+(defn select-conference-query [data]
+  (let [{mp :map rd :reduce} (select (fn [r]
+                                       (= (r :conference) "BIG 10")))]
+    (map-reduce data mp rd)))
+
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
