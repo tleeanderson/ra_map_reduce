@@ -26,15 +26,19 @@
     reduce-stage))
 
 (defn reduce-identity [key vals]
+  "Intended to be passed to map-reduce. Takes key and vals and returns them."
   [key vals])
 
 (defn select [cond-func]
+  "Semantic equivalent to RA select. Takes function and evaluates it with given
+   record. passed and failed are used as group keys."
   {:map (fn [record] (if (cond-func record)
                        ["passed" record]
                        ["failed" (record :offset)]))
    :reduce reduce-identity})
 
 (defn select-conference-query [data]
+  "Uses generic select function to filter teams by conference."
   (let [{mp :map rd :reduce} (select (fn [r]
                                        (= (r :conference) "BIG 10")))]
     (map-reduce data mp rd)))
