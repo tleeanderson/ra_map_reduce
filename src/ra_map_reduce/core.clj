@@ -43,6 +43,18 @@
                                        (= (r :conference) "BIG 10")))]
     (map-reduce data mp rd)))
 
+(defn project [attr-keys]
+  "Takes a set of attribute keys and selects a subset of the record
+   map by those attribute keys. Groups by table by default."
+  {:map (fn [record] [(record :table)
+                      (select-keys record attr-keys)])
+   :reduce reduce-identity})
+
+(defn project-query [data]
+  "Uses generic project to select name, city, stadium from each record."
+  (let [{mp :map rd :reduce} (project #{:name :city :stadium})]
+    (map-reduce data mp rd)))
+
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
