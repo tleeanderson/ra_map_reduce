@@ -62,6 +62,9 @@
                             (reduce-func k v)) group-stage)]
     reduce-stage))
 
+(defn grab-records [mr-out]
+  (flatten (map second mr-out)))
+
 (def game-data (data-records schema-path "game"))
 (def team-data (data-records schema-path "team"))
 (def stadium-data (data-records schema-path "stadium"))

@@ -32,3 +32,10 @@
 (defn join-query []
   (let [{mp :map rd :reduce} (cartesian-product #{:name})]
     (map-reduce [team-data team-data] mp rd)))
+
+(defn several-query []
+  (let [{cp-mp :map cp-rd :reduce} (cartesian-product #{:name})
+        {s-mp :map s-rd :reduce} (select (fn [r]
+                                       (contains? #{"ACC" "Nebraska"} (r :name))))]
+    (map-reduce (grab-records
+                 (map-reduce [team-data conference-data] cp-mp cp-rd)) s-mp s-rd)))
