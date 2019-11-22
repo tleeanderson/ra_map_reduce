@@ -23,6 +23,10 @@
    :reduce reduce-identity})
 
 (defn agg-group [group-keys agg-func-map]
+  "Takes a set of group keys and aggregation function map and
+   performs aggregation and grouping. If no group keys are specified,
+   then grouping is done on table. Aggregation function map must be keyed
+   by attribute name and values should be functions that expect a list of values."
   {:map (fn [record]
           [(if (some? group-keys)
              (mapv record (sort group-keys))
@@ -30,3 +34,12 @@
    :reduce (fn [key vals]
              [key (map (fn [[k af]]
                          {k (af (map k vals))}) agg-func-map)])})
+
+(defn cartesian-product [group-keys]
+  "Takes a set of group-keys and creates a vector group key with
+   values from the record. Uses default_key if no key is specified."
+  {:map (fn [record]
+          [(if (some? group-keys)
+             (mapv record (sort group-keys))
+             "default_key") record])
+   :reduce reduce-identity})

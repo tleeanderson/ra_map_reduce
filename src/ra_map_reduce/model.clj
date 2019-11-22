@@ -50,8 +50,9 @@
 (defn map-reduce [data map-func reduce-func]
   "Takes data, map function, reduce function, and mimics map reduce
    behavior on the data stream."
-  (let [map-stage (map (fn [mr]
-                         (map-func mr)) data)
+  (let [flat-lis (flatten data)
+        map-stage (map (fn [mr]
+                         (map-func mr)) flat-lis)
         group-stage (into (sorted-map)
                           (map (fn [[k v]]
                                  [k (mapv #(second %) v)])
