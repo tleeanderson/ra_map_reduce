@@ -8,7 +8,7 @@
   (let [[header & rows] (clojure.string/split-lines in-str)
         h (map keyword (str/split header #","))
         rs (map #(vector %1 (str/split %2 #","))
-                (range 1 (count rows)) rows)]
+                (range 1 (inc (count rows))) rows)]
     (map
      (fn [[o r]] (assoc (assoc
                          (zipmap h r)
