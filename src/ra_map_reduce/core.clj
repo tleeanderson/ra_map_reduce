@@ -4,7 +4,7 @@
 (require '[clojure.string :as str])
 
 (defn records [in-str table]
-  "Takes newline separated string with leading header and returns list of maps"
+  "Takes newline separated string with leading header and returns list of maps."
   (let [[header & rows] (clojure.string/split-lines in-str)
         h (map keyword (str/split header #","))
         rs (map #(vector %1 (str/split %2 #","))
@@ -16,6 +16,8 @@
                         :offset o)) rs)))
 
 (defn map-reduce [data map-func reduce-func]
+  "Takes data, map function, reduce function, and mimics map reduce
+   behavior on the data stream."
   (let [map-stage (map (fn [mr] (map-func mr)) data)
         group-stage (into (sorted-map)
                           (map (fn [[k v]] [k (mapv #(second %) v)])
