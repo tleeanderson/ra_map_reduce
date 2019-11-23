@@ -43,7 +43,6 @@
 (defn nj-team-game []
   (let [{cp-mp :map cp-rd :reduce} (cartesian-product nil :table)
         {s-mp :map s-rd :reduce} (select (fn [r]
-                                             (and (not= (r :table.1) (r :table.2))
-                                                  (= (r :name) (r :home_team)))))]
+                                             (and (= (r :name) (r :home_team)))))]
     (map-reduce (grab-records
      (map-reduce [team-data game-data] cp-mp cp-rd)) s-mp s-rd)))
