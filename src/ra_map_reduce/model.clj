@@ -64,3 +64,9 @@
   "Takes output of map reduce and changes shape such that map
    records are in flat."
   (flatten (map second mr-out)))
+
+(defn passed-records [sel-mr-out]
+  (second (first (filter #(= (first %) "passed") sel-mr-out))))
+
+(defn raw-mr [mr-out]
+  mr-out)

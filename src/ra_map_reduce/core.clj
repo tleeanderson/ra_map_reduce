@@ -19,7 +19,7 @@
 (defn add-team-offsets [td]
   "Takes team data and adds offsets for all records in table."
   (query/agg-group nil {:offset (fn [vs]
-                                  (reduce + vs))} td))
+                                  (reduce + vs))} td model/raw-mr))
 
 (def add-team-offsets-fq [add-team-offsets
                           "\tSELECT SUM(OFFSET)\n\tFROM TEAM\n\tGROUP BY OFFSET"])
@@ -30,7 +30,7 @@
   (query/agg-group #{:home_team} {:home_points (fn [vs]
                                                  (reduce + vs))
                                   :attendance (fn [vs]
-                                                (reduce + vs))} gd))
+                                                (reduce + vs))} gd model/raw-mr))
 (def home-team-points-att-fq [home-team-points-attendance
                               "\tSELECT SUM(HOME_POINTS), SUM(ATTENDANCE)\n\tFROM GAME\n\tGROUP BY HOME_TEAM"])
 
@@ -38,15 +38,16 @@
   "Filters the team table by conference and returns only teams in the
    big10. GBR."
   (query/select td (fn [r]
-                     (= (r :conference) "BIG 10"))))
+                     (= (r :conference) "BIG 10")) model/passed-records))
 
 (def select-big10-conf-fq [select-big10-conf
                            "\tSELECT *\n\tFROM TEAM\n\tWHERE CONFERENCE = 'BIG 10'"])
 
 (defn nj-team-game [td gd]
   "Natural join between team and game tables."
-  (query/join :table (fn [r]
-                       (= (r :name) (r :home_team))) td gd))
+  (query/project (query/join :table (fn [r]
+                       (= (r :name) (r :home_team))) td gd model/passed-records)
+                 #{:home_team :away_team :home_points :away_points :stadium} :date model/raw-mr))
 
 (def nj-team-game-fq [nj-team-game
                       "\tSELECT *\n\tFROM TEAM\n\tJOIN GAME ON TEAM.NAME = GAME.HOME_TEAM"])
@@ -54,8 +55,12 @@
 (defn example-out [ex-num descr query]
   (str "Example " ex-num ": " descr "\nEquivalent SQL:\n" query "\nMapReduce: "))
 
+(defn print-coll [coll]
+  (doseq [item coll]
+    (println "\t" item)))
+
 (defn -main
-  "Run queries and output results to file."
+  "Run queries and output results to stdout."
   [& args]
   (let [game (game-data)
         team (team-data)
@@ -66,13 +71,17 @@
         [b10 b10-query] [((first select-big10-conf-fq) team) (second select-big10-conf-fq)]
         [nj-tg nj-tg-query] [((first nj-team-game-fq) team game) (second nj-team-game-fq)]]
     (println (example-out "1" "Use default grouping and add the offset column for each team in team."
-                         off-query) off)
+                         off-query))
+    (print-coll off)
     (println )
     (println (example-out "2" "Sum the home team points and attendance for each home game."
-                          htp-query) htp)
+                          htp-query))
+    (print-coll htp)
     (println )
     (println (example-out "3" "Filters the team table by conference and returns only teams in the BIG 10."
-                          b10-query) b10)
+                          b10-query))
+    (print-coll b10)
     (println )
-    (println (example-out "4" "Natural join between team and game tables." nj-tg-query) nj-tg)
+    (println (example-out "4" "Natural join between team and game tables." nj-tg-query))
+    (print-coll nj-tg)
     (println )))

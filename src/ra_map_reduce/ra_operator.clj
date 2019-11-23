@@ -15,11 +15,11 @@
                        (record :offset)]]))
    :reduce reduce-identity})
 
-(defn project [attr-keys]
+(defn project [attr-keys gk-key-func]
   "Takes a set of attribute keys and selects a subset of the record
    map by those attribute keys. Groups by table by default."
   {:map (fn [record]
-          [(record :table)
+          [(gk-key-func record)
            (select-keys record attr-keys)])
    :reduce reduce-identity})
 
