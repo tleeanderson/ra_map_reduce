@@ -87,3 +87,22 @@
                    [_ second-table] (second groups)]
                [key (map (fn [r]
                     (combine-record r)) (relate-all first-table second-table))]))})
+
+(defn set-operation [op s1 s2]
+  "Takes some set operation, stream s1, and stream s2 and returns
+   the op on the two streams and returns a vector."
+  (vec (op (set s1) (set s2))))
+
+(defn mr-union [s1 s2]
+  "Takes two streams s1 and s1 and performs map reduce union."
+  (set-operation clojure.set/union s1 s2))
+
+(defn mr-difference [s1 s2]
+  "Takes two streams s1 and s1 and performs map reduce difference."
+  (set-operation clojure.set/difference s1 s2))
+
+(defn mr-intersection [s1 s2]
+  "Takes two streams s1 and s1 and performs map reduce intersection."
+  (set-operation clojure.set/intersection s1 s2))
+
+
