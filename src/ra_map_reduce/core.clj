@@ -21,9 +21,6 @@
   (query/agg-group nil {:offset (fn [vs]
                                   (reduce + vs))} td model/raw-mr))
 
-(def add-team-offsets-fq [add-team-offsets
-                          "\tSELECT SUM(OFFSET)\n\tFROM TEAM\n\tGROUP BY OFFSET"])
-
 (defn home-team-points-attendance [gd]
   "Sums the home points and attendance for each home team group in
    game table."
@@ -31,8 +28,6 @@
                                                  (reduce + vs))
                                   :attendance (fn [vs]
                                                 (reduce + vs))} gd model/raw-mr))
-(def home-team-points-att-fq [home-team-points-attendance
-                              "\tSELECT SUM(HOME_POINTS), SUM(ATTENDANCE)\n\tFROM GAME\n\tGROUP BY HOME_TEAM"])
 
 (defn select-big10-conf [td]
   "Filters the team table by conference and returns only teams in the
@@ -41,27 +36,36 @@
                      (= (r :conference) "BIG 10")) model/passed-records) #{:name :conference :stadium}
                  #{:city :state} model/raw-mr))
 
-(def select-big10-conf-fq [select-big10-conf
-                           "\tSELECT NAME,CONFERENCE,STADIUM\n\tFROM TEAM\n\tWHERE CONFERENCE = 'BIG 10'"])
-
 (defn nj-team-game [td gd]
   "Natural join between team and game tables."
   (query/project (query/join :table (fn [r]
                        (= (r :name) (r :home_team))) td gd model/passed-records)
                  #{:home_team :away_team :home_points :away_points} #{:date :stadium} model/raw-mr))
 
-(def nj-team-game-fq [nj-team-game
-                      "\tSELECT HOME_TEAM,AWAY_TEAM,HOME_POINTS,AWAY_POINTS\n\tFROM TEAM\n\tJOIN GAME ON TEAM.NAME = GAME.HOME_TEAM"])
-
 (defn example-out [ex-num descr query]
+  "Creates example output for each query."
   (str "Example " ex-num ": " descr "\n\nEquivalent SQL:\n" query "\n\nMapReduce: "))
 
 (defn print-coll [coll]
+  "Print out collection."
   (doseq [item coll]
     (println "\t" item)))
 
 (defn separate []
+  "Returns a separator string."
   (println (str "\n" (apply str (repeat 100 "-")) "\n")))
+
+(def add-team-offsets-fq [add-team-offsets
+                          "\tSELECT SUM(OFFSET)\n\tFROM TEAM\n\tGROUP BY OFFSET"])
+
+(def home-team-points-att-fq [home-team-points-attendance
+                              "\tSELECT SUM(HOME_POINTS), SUM(ATTENDANCE)\n\tFROM GAME\n\tGROUP BY HOME_TEAM"])
+
+(def select-big10-conf-fq [select-big10-conf
+                           "\tSELECT NAME,CONFERENCE,STADIUM\n\tFROM TEAM\n\tWHERE CONFERENCE = 'BIG 10'"])
+
+(def nj-team-game-fq [nj-team-game
+                      "\tSELECT HOME_TEAM,AWAY_TEAM,HOME_POINTS,AWAY_POINTS\n\tFROM TEAM\n\tJOIN GAME ON TEAM.NAME = GAME.HOME_TEAM"])
 
 (defn -main
   "Run queries and output results to stdout."
