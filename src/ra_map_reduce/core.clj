@@ -37,27 +37,31 @@
 (defn select-big10-conf [td]
   "Filters the team table by conference and returns only teams in the
    big10. GBR."
-  (query/select td (fn [r]
-                     (= (r :conference) "BIG 10")) model/passed-records))
+  (query/project (query/select td (fn [r]
+                     (= (r :conference) "BIG 10")) model/passed-records) #{:name :conference :stadium}
+                 #{:city :state} model/raw-mr))
 
 (def select-big10-conf-fq [select-big10-conf
-                           "\tSELECT *\n\tFROM TEAM\n\tWHERE CONFERENCE = 'BIG 10'"])
+                           "\tSELECT NAME,CONFERENCE,STADIUM\n\tFROM TEAM\n\tWHERE CONFERENCE = 'BIG 10'"])
 
 (defn nj-team-game [td gd]
   "Natural join between team and game tables."
   (query/project (query/join :table (fn [r]
                        (= (r :name) (r :home_team))) td gd model/passed-records)
-                 #{:home_team :away_team :home_points :away_points :stadium} :date model/raw-mr))
+                 #{:home_team :away_team :home_points :away_points} #{:date :stadium} model/raw-mr))
 
 (def nj-team-game-fq [nj-team-game
-                      "\tSELECT *\n\tFROM TEAM\n\tJOIN GAME ON TEAM.NAME = GAME.HOME_TEAM"])
+                      "\tSELECT HOME_TEAM,AWAY_TEAM,HOME_POINTS,AWAY_POINTS\n\tFROM TEAM\n\tJOIN GAME ON TEAM.NAME = GAME.HOME_TEAM"])
 
 (defn example-out [ex-num descr query]
-  (str "Example " ex-num ": " descr "\nEquivalent SQL:\n" query "\nMapReduce: "))
+  (str "Example " ex-num ": " descr "\n\nEquivalent SQL:\n" query "\n\nMapReduce: "))
 
 (defn print-coll [coll]
   (doseq [item coll]
     (println "\t" item)))
+
+(defn separate []
+  (println (str "\n" (apply str (repeat 100 "-")) "\n")))
 
 (defn -main
   "Run queries and output results to stdout."
@@ -73,15 +77,15 @@
     (println (example-out "1" "Use default grouping and add the offset column for each team in team."
                          off-query))
     (print-coll off)
-    (println )
+    (separate)
     (println (example-out "2" "Sum the home team points and attendance for each home game."
                           htp-query))
     (print-coll htp)
-    (println )
+    (separate)
     (println (example-out "3" "Filters the team table by conference and returns only teams in the BIG 10."
                           b10-query))
     (print-coll b10)
-    (println )
+    (separate)
     (println (example-out "4" "Natural join between team and game tables." nj-tg-query))
     (print-coll nj-tg)
-    (println )))
+    (separate)))

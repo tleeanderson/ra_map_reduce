@@ -9,10 +9,10 @@
                                        (filt-cond-func r)))]
     (out-func (model/map-reduce data mp rd))))
 
-(defn project [data attr-set gk-key out-func]
+(defn project [data attr-set gk-keys out-func]
   "Uses generic project to select name, city, stadium from each record."
   (let [{mp :map rd :reduce} (ra/project attr-set (fn [r]
-                                                    (r gk-key)))]
+                                                    (mapv r gk-keys)))]
     (out-func (model/map-reduce data mp rd))))
 
 (defn join [sep-key join-cond-func rel1 rel2 out-func]
