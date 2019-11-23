@@ -1,9 +1,12 @@
-(ns ra-map-reduce.model
-  (:gen-class))
+(ns ra-map-reduce.model)
 
 (require '[clojure.string :as str])
 
 (def schema-path "/home/tanderson/git/ra_map_reduce/resources/schema/")
+
+(defn str-to-long [s]
+  "Converts input string to java Long."
+  (Long/parseLong s))
 
 (def type-map {:game {:home_points str-to-long 
                       :away_points str-to-long 
@@ -11,10 +14,6 @@
                :conference {:number_teams str-to-long}
                :stadium {:capacity str-to-long
                          :year_built str-to-long}})
-
-(defn str-to-long [s]
-  "Converts input string to java Long."
-  (Long/parseLong s))
 
 (defn records [in-str table]
   "Takes newline separated string with leading header and returns list of maps."
@@ -64,10 +63,5 @@
 
 (defn grab-records [mr-out]
   "Takes output of map reduce and changes shape such that map
-   records are in flat collection."
+   records are in flat."
   (flatten (map second mr-out)))
-
-(def game-data (data-records schema-path "game"))
-(def team-data (data-records schema-path "team"))
-(def stadium-data (data-records schema-path "stadium"))
-(def conference-data (data-records schema-path "conference"))

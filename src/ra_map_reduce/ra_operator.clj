@@ -1,5 +1,5 @@
 (ns ra-map-reduce.ra-operator
-  (:gen-class))
+  (:require [clojure.set]))
 
 (defn reduce-identity [key vals]
   "Default reduce function. Takes key and vals and returns them."
