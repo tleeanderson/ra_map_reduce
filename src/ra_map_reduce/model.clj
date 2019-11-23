@@ -3,6 +3,7 @@
 (require '[clojure.string :as str])
 
 (def schema-path "/home/tanderson/git/ra_map_reduce/resources/schema/")
+;;(def schema-path "schema/")
 
 (defn str-to-long [s]
   "Converts input string to java Long."

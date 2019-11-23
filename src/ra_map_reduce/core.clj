@@ -3,35 +3,39 @@
   (:require [ra-map-reduce.model :as model])
   (:require [ra-map-reduce.query :as query]))
 
-(def game-data (model/data-records model/schema-path "game"))
-(def team-data (model/data-records model/schema-path "team"))
-(def stadium-data (model/data-records model/schema-path "stadium"))
-(def conference-data (model/data-records model/schema-path "conference"))
+(defn game-data []
+  (model/data-records model/schema-path "game"))
+(defn team-data []
+  (model/data-records model/schema-path "team"))
+(defn stadium-data []
+  (model/data-records model/schema-path "stadium"))
+(defn conference-data []
+  (model/data-records model/schema-path "conference"))
 
-;;ground queries
-(defn add-team-offsets []
-  "Add the offsets for the team relation."
+(defn add-team-offsets [td]
   (query/agg-group nil {:offset (fn [vs]
-                                  (reduce + vs))} team-data))
+                                  (reduce + vs))} td))
 
-(defn home-team-points-attendance []
-  "Sum home points and attendance for each home team."
+(defn home-team-points-attendance [gd]
   (query/agg-group #{:home_team} {:home_points (fn [vs]
-                                                        (reduce + vs))
-                                         :attendance (fn [vs]
-                                                        (reduce + vs))} game-data))
+                                                 (reduce + vs))
+                                  :attendance (fn [vs]
+                                                (reduce + vs))} gd))
 
-(defn select-big10-conf []
-  "Select teams which are in the big10 conference. GBR."
-  (query/select team-data (fn [r]
-                            (= (r :conference) "BIG 10"))))
+(defn select-big10-conf [td]
+  (query/select td (fn [r]
+                     (= (r :conference) "BIG 10"))))
 
-(defn nj-team-game []
-  "Performs natural join between team and game."
+(defn nj-team-game [td gd]
   (query/join :table (fn [r]
-                 (= (r :name) (r :home_team))) team-data game-data))
+                       (= (r :name) (r :home_team))) td gd))
 
 (defn -main
-  "I don't do a whole lot ... yet."
+  "Run queries and output results to file."
   [& args]
-  (println "Hello, World!"))
+  (let [game (game-data)
+        team (team-data)
+        stadium (stadium-data)
+        conference (conference-data)
+        off (add-team-offsets team)] 
+    (println "Use default grouping and add the offset column for team:" off)))
