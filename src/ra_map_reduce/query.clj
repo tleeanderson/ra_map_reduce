@@ -27,7 +27,7 @@
 
 (defn agg-group [group-keys key-func-map data]
   "Takes grouping keys, function map by key, and a relation and returns
-   aggregation with grouping on relation according to grouping keys and
+   aggregation with grouping on Relation according to grouping keys and
    function map."
   (let [{mp :map rd :reduce} (ra/agg-group group-keys key-func-map)]
     (model/grab-records (model/map-reduce data mp rd))))
