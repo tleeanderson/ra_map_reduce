@@ -37,8 +37,8 @@
                          {k (af (map k vals))}) agg-func-map)])})
 
 (defn relate-all [rel1 rel2]
-  "Takes an input collection of records and relates them
-   in n^2 fashion."
+  "Takes two relations and performs cartesian product. The
+   map records are not combined and represented as [r1 r2] instead."
   (let [reps (map (fn [x]
                     (repeat (count rel2) x)) rel1)
         relate (map (fn [r]

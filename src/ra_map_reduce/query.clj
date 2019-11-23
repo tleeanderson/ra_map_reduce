@@ -29,20 +29,17 @@
   (let [{mp :map rd :reduce} (project #{:name :city :stadium})]
     (map-reduce stadium-data mp rd)))
 
-(defn join-query []
-  (let [{mp :map rd :reduce} (cartesian-product nil)]
-    (map-reduce [conference-data] mp rd)))
-
-(defn several-query []
-  (let [{cp-mp :map cp-rd :reduce} (cartesian-product #{:name})
+(defn join [sep-key join-cond-func]
+  "Takes a key to separate the relations in the reduce stage of cartesian
+   product and a function to perform the join condition."
+  (let [{cp-mp :map cp-rd :reduce} (cartesian-product nil sep-key)
         {s-mp :map s-rd :reduce} (select (fn [r]
-                                       (contains? #{"ACC" "Nebraska"} (r :name))))]
-    (map-reduce (grab-records
-                 (map-reduce [team-data conference-data] cp-mp cp-rd)) s-mp s-rd)))
-
-(defn nj-team-game []
-  (let [{cp-mp :map cp-rd :reduce} (cartesian-product nil :table)
-        {s-mp :map s-rd :reduce} (select (fn [r]
-                                             (and (= (r :name) (r :home_team)))))]
+                                             (join-cond-func r)))]
     (map-reduce (grab-records
      (map-reduce [team-data game-data] cp-mp cp-rd)) s-mp s-rd)))
+
+(defn nj-team-game []
+  "Performs natural join between team and game."
+  (join :table (fn [r]
+                 (= (r :name) (r :home_team)))))
+
