@@ -78,6 +78,7 @@
         [htp htp-query] [((first home-team-points-att-fq) game) (second home-team-points-att-fq)]
         [b10 b10-query] [((first select-big10-conf-fq) team) (second select-big10-conf-fq)]
         [nj-tg nj-tg-query] [((first nj-team-game-fq) team game) (second nj-team-game-fq)]]
+    (separate)
     (println (example-out "1" "Use default grouping and add the offset column for each team in team."
                          off-query))
     (print-coll off)

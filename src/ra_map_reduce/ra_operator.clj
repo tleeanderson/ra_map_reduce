@@ -33,8 +33,8 @@
              (mapv record (sort group-keys))
              (record :table)) record])
    :reduce (fn [key vals]
-             [key (map (fn [[k af]]
-                         {k (af (map k vals))}) agg-func-map)])})
+             [key (into (array-map) (map (fn [[k af]]
+                                           [k (af (map k vals))]) agg-func-map))])})
 
 (defn relate-all [rel1 rel2]
   "Takes two relations and performs cartesian product. The
