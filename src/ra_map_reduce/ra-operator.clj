@@ -11,7 +11,8 @@
   {:map (fn [record]
           (if (cond-func record)
             ["passed" record]
-            ["failed" (record :offset)]))
+            ["failed" [(keyword (record :table))
+                       (record :offset)]]))
    :reduce reduce-identity})
 
 (defn project [attr-keys]
@@ -35,6 +36,44 @@
              [key (map (fn [[k af]]
                          {k (af (map k vals))}) agg-func-map)])})
 
+(defn relate-all [input]
+  "Takes an input collection of records and relates them
+   in n^2 fashion."
+  (let [reps (map (fn [x]
+                    (repeat (count input) x)) input)
+        relate (map (fn [r]
+                      [r input]) reps)
+        final  (map (fn [[rep v]]
+                      (map (fn [r1 r2]
+                             [r1 r2]) rep v)) relate)]
+    (reduce concat final)))
+
+(defn combine-record [[m1 m2]]
+  "Takes two record maps and combines them into one map. Alike key
+   names are renamed such that k becomes k.1 k.2 with both having the
+   value of k. Distinct key names are preserved."
+  (let [[k1 k2] [(set (keys m1)) (set (keys m2))]
+        int-kv (map (fn [k]
+                      [k (m1 k)]) (clojure.set/intersection k1 k2))
+        int-keys (set (map first int-kv))
+        no-change (clojure.set/difference (clojure.set/union k1 k2) int-keys)
+        no-change-kv (map (fn [k]
+                            [k ((if (contains? m1 k)
+                                  m1
+                                  m2) k)]) no-change)
+        ren-keys (map (fn [k]
+                        [k
+                         (keyword (str (name k) ".1"))
+                         (keyword (str (name k) ".2"))]) int-keys)
+        change-k1v (map (fn [[ok k1 _]]
+                          [k1 (m1 ok)]) ren-keys)
+        change-k2v (map (fn [[ok _ k2]]
+                          [k2 (m2 ok)]) ren-keys)
+        kvs (concat no-change-kv change-k1v change-k2v)
+        ks (map first kvs)
+        vs (map second kvs)]
+    (zipmap ks vs)))
+
 (defn cartesian-product [group-keys]
   "Takes a set of group-keys and creates a vector group key with
    values from the record. Uses default_key if no key is specified."
@@ -42,4 +81,6 @@
           [(if (some? group-keys)
              (mapv record (sort group-keys))
              "default_key") record])
-   :reduce reduce-identity})
+   :reduce (fn [key vals]
+             [key (map (fn [r]
+                    (combine-record r)) (relate-all vals))])})

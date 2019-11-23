@@ -30,8 +30,8 @@
     (map-reduce stadium-data mp rd)))
 
 (defn join-query []
-  (let [{mp :map rd :reduce} (cartesian-product #{:name})]
-    (map-reduce [team-data team-data] mp rd)))
+  (let [{mp :map rd :reduce} (cartesian-product nil)]
+    (map-reduce [conference-data] mp rd)))
 
 (defn several-query []
   (let [{cp-mp :map cp-rd :reduce} (cartesian-product #{:name})
