@@ -36,13 +36,13 @@
              [key (map (fn [[k af]]
                          {k (af (map k vals))}) agg-func-map)])})
 
-(defn relate-all [input]
+(defn relate-all [rel1 rel2]
   "Takes an input collection of records and relates them
    in n^2 fashion."
   (let [reps (map (fn [x]
-                    (repeat (count input) x)) input)
+                    (repeat (count rel2) x)) rel1)
         relate (map (fn [r]
-                      [r input]) reps)
+                      [r rel2]) reps)
         final  (map (fn [[rep v]]
                       (map (fn [r1 r2]
                              [r1 r2]) rep v)) relate)]
@@ -74,7 +74,7 @@
         vs (map second kvs)]
     (zipmap ks vs)))
 
-(defn cartesian-product [group-keys]
+(defn cartesian-product [group-keys reduce-gk]
   "Takes a set of group-keys and creates a vector group key with
    values from the record. Uses default_key if no key is specified."
   {:map (fn [record]
@@ -82,5 +82,8 @@
              (mapv record (sort group-keys))
              "default_key") record])
    :reduce (fn [key vals]
-             [key (map (fn [r]
-                    (combine-record r)) (relate-all vals))])})
+             (let [groups (group-by (keyword reduce-gk) vals)
+                   [_ first-table] (first groups)
+                   [_ second-table] (second groups)]
+               [key (map (fn [r]
+                    (combine-record r)) (relate-all first-table second-table))]))})
