@@ -63,6 +63,8 @@
     reduce-stage))
 
 (defn grab-records [mr-out]
+  "Takes output of map reduce and changes shape such that map
+   records are in flat collection."
   (flatten (map second mr-out)))
 
 (def game-data (data-records schema-path "game"))
