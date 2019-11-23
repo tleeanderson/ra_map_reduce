@@ -1,9 +1,8 @@
-(ns ra-map-reduce.model)
+(ns ra-map-reduce.model
+  (:require [clojure.string])
+  (:require [clojure.java.io :as io]))
 
-(require '[clojure.string :as str])
-
-(def schema-path "/home/tanderson/git/ra_map_reduce/resources/schema/")
-;;(def schema-path "schema/")
+(def schema-path "schema/")
 
 (defn str-to-long [s]
   "Converts input string to java Long."
@@ -19,8 +18,8 @@
 (defn records [in-str table]
   "Takes newline separated string with leading header and returns list of maps."
   (let [[header & rows] (clojure.string/split-lines in-str)
-        h (map keyword (str/split header #","))
-        rs (map #(vector %1 (str/split %2 #","))
+        h (map keyword (clojure.string/split header #","))
+        rs (map #(vector %1 (clojure.string/split %2 #","))
                 (range 1 (inc (count rows))) rows)]
     (map
      (fn [[o r]]
@@ -40,8 +39,7 @@
    where each map is a record from the table. Types are mapped according
    to type-map."
   (let [full-path (str path table ".csv")
-        _ (println "Reading records from" full-path)
-        recs (records (slurp full-path) table)]    
+        recs (records (slurp (io/resource full-path)) table)]
     (if (contains? (set (keys type-map)) (keyword table))
       (map (fn [r]
             (convert-rec-types r type-map)) recs)
