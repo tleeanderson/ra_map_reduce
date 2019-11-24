@@ -43,6 +43,7 @@
                  #{:home_team :away_team :home_points :away_points} [:date :stadium] model/raw-mr))
 
 (defn home-team-wins [td gd]
+  "Computes statistics for every game where the home team won."
   (let [nj (query/project (query/join :table (fn [r]
                        (= (r :name) (r :home_team))) td gd model/passed-records)
                  #{:home_team :away_team :home_points :away_points :stadium} [:date :city] model/raw-mr)]
@@ -52,6 +53,7 @@
      #{:home_points :away_points :home_team :away_team :stadium} [:home_team :away_team] model/raw-mr)))
 
 (defn stadium-stats [td gd]
+  "Computes stats for every game per stadium group."
   (let [nj (query/project (query/join :table (fn [r]
                        (= (r :name) (r :home_team))) td gd model/passed-records) #{:home_points
                                                                                    :away_points
