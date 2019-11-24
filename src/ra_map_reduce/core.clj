@@ -34,13 +34,36 @@
    big10. GBR."
   (query/project (query/select td (fn [r]
                      (= (r :conference) "BIG 10")) model/passed-records) #{:name :conference :stadium}
-                 #{:city :state} model/raw-mr))
+                 [:city :state] model/raw-mr))
 
 (defn nj-team-game [td gd]
   "Natural join between team and game tables."
   (query/project (query/join :table (fn [r]
                        (= (r :name) (r :home_team))) td gd model/passed-records)
-                 #{:home_team :away_team :home_points :away_points} #{:date :stadium} model/raw-mr))
+                 #{:home_team :away_team :home_points :away_points} [:date :stadium] model/raw-mr))
+
+(defn home-team-wins [td gd]
+  (let [nj (query/project (query/join :table (fn [r]
+                       (= (r :name) (r :home_team))) td gd model/passed-records)
+                 #{:home_team :away_team :home_points :away_points :stadium} [:date :city] model/raw-mr)]
+    (query/project
+     (query/select (model/grab-records nj) (fn [r]
+                       (> (r :home_points) (r :away_points))) model/passed-records)
+     #{:home_points :away_points :home_team :away_team :stadium} [:home_team :away_team] model/raw-mr)))
+
+(defn stadium-stats [td gd]
+  (let [nj (query/project (query/join :table (fn [r]
+                       (= (r :name) (r :home_team))) td gd model/passed-records) #{:home_points
+                                                                                   :away_points
+                                                                                   :stadium
+                                                                                   :attendance}
+                          [nil] model/grab-records)]
+    (query/agg-group #{:stadium} {:home_points (fn [vs]
+                                                 (apply max vs))
+                                  :away_points (fn [vs]
+                                                 (reduce min vs))
+                                  :attendance (fn [vs]
+                                                 (float (/ (reduce + vs) (count vs))))} nj model/raw-mr)))
 
 (defn example-out [ex-num descr query]
   "Creates example output for each query."
@@ -54,6 +77,12 @@
 (defn separate []
   "Returns a separator string."
   (println (str "\n" (apply str (repeat 100 "-")) "\n")))
+
+(def stadium-stats-fq [stadium-stats
+                       "\tSELECT AVG(ATTENDANCE), MAX(HOME_POINTS), MIN(AWAY_POINTS)\n\tFROM TEAM\n\tJOIN GAME ON TEAM.NAME = GAME.HOME_TEAM\n\tGROUP BY STADIUM"])
+
+(def home-team-wins-fq [home-team-wins
+                        "\tSELECT HOME_TEAM,AWAY_TEAM,HOME_POINTS,AWAY_POINTS\n\tFROM TEAM\n\tJOIN GAME ON TEAM.NAME = GAME.HOME_TEAM\n\tWHERE HOME_POINTS > AWAY_POINTS"])
 
 (def add-team-offsets-fq [add-team-offsets
                           "\tSELECT SUM(OFFSET)\n\tFROM TEAM\n\tGROUP BY OFFSET"])
@@ -77,9 +106,14 @@
         [off off-query] [((first add-team-offsets-fq) team) (second add-team-offsets-fq)]
         [htp htp-query] [((first home-team-points-att-fq) game) (second home-team-points-att-fq)]
         [b10 b10-query] [((first select-big10-conf-fq) team) (second select-big10-conf-fq)]
-        [nj-tg nj-tg-query] [((first nj-team-game-fq) team game) (second nj-team-game-fq)]]
+        [nj-tg nj-tg-query] [((first nj-team-game-fq) team game) (second nj-team-game-fq)]
+        [htw htw-query] [((first home-team-wins-fq) team game) (second home-team-wins-fq)]
+        [ss ss-query] [((first stadium-stats-fq) team game) (second stadium-stats-fq)]]
     (separate)
-    (println (example-out "1" "Use default grouping and add the offset column for each team in team."
+    (println (example-out "0" "This will contain an english description of the query." "\tQUERY IN SQL"))
+    (println "\tMap reduce output will appear here.\n\t[[map reduce join attributes] [records]]")
+    (separate)
+    (println (example-out "1" "Use default grouping on the map side and add the offset column for each team in team."
                          off-query))
     (print-coll off)
     (separate)
@@ -87,10 +121,16 @@
                           htp-query))
     (print-coll htp)
     (separate)
-    (println (example-out "3" "Filters the team table by conference and returns only teams in the BIG 10."
+    (println (example-out "3" "Select the name, conference, and stadium for all teams in the BIG 10 conference."
                           b10-query))
     (print-coll b10)
     (separate)
-    (println (example-out "4" "Natural join between team and game tables." nj-tg-query))
+    (println (example-out "4" "Compute the natural join between team and game tables." nj-tg-query))
     (print-coll nj-tg)
+    (separate)
+    (println (example-out "5" "Return the home points, away points, home team, away team, and stadium for every game where the home team won." htw-query))
+    (print-coll htw)
+    (separate)
+    (println (example-out "6" "For every game, compute the average attendance, maximum home points, and minimum away points for each stadium." ss-query))
+    (print-coll ss)
     (separate)))
