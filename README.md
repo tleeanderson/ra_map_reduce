@@ -1,4 +1,4 @@
-# ra_map_reduce
+# Implementation of RA operators via Map and Reduce Functions
 
 Shows off the implementation of the RA operators via map and reduce functions which can
 be submitted to a simulated MapReduce system.
