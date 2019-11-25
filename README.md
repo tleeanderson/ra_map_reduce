@@ -15,7 +15,7 @@ From the project root, execute:<br/>
 To execute the prebuilt jar, execute:<br/>
    `java -jar ra_map_reduce-0.1.0-SNAPSHOT-standalone.jar`
 
-From the project root, execute:<br/>
+If you built the artifact jar, execute:<br/>
     `java -jar target/uberjar/ra_map_reduce-0.1.0-SNAPSHOT-standalone.jar`
 
 ## Options
