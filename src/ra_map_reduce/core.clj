@@ -84,7 +84,7 @@
                        "\tSELECT AVG(ATTENDANCE), MAX(HOME_POINTS), MIN(AWAY_POINTS)\n\tFROM TEAM\n\tJOIN GAME ON TEAM.NAME = GAME.HOME_TEAM\n\tGROUP BY STADIUM"])
 
 (def home-team-wins-fq [home-team-wins
-                        "\tSELECT HOME_TEAM,AWAY_TEAM,HOME_POINTS,AWAY_POINTS\n\tFROM TEAM\n\tJOIN GAME ON TEAM.NAME = GAME.HOME_TEAM\n\tWHERE HOME_POINTS > AWAY_POINTS"])
+                        "\tSELECT HOME_POINTS,AWAY_POINTS,HOME_TEAM,AWAY_TEAM,STADIUM\n\tFROM TEAM\n\tJOIN GAME ON TEAM.NAME = GAME.HOME_TEAM\n\tWHERE HOME_POINTS > AWAY_POINTS"])
 
 (def add-team-offsets-fq [add-team-offsets
                           "\tSELECT SUM(OFFSET)\n\tFROM TEAM\n\tGROUP BY OFFSET"])
@@ -115,24 +115,24 @@
     (println (example-out "0" "This will contain an english description of the query." "\tQUERY IN SQL"))
     (println "\tMap reduce output will appear here.\n\t[[map reduce join attributes] [records]]")
     (separate)
-    (println (example-out "1" "Use default grouping on the map side and add the offset column for each team in team."
+    (println (example-out "1" "Use grouping on team on the map side and add the offset column for each team in team."
                          off-query))
     (print-coll off)
     (separate)
-    (println (example-out "2" "Sum the home team points and attendance for each home game."
+    (println (example-out "2" "For each group of home teams, sum the home team points and attendance for every game."
                           htp-query))
     (print-coll htp)
     (separate)
-    (println (example-out "3" "Select the name, conference, and stadium for all teams in the BIG 10 conference."
+    (println (example-out "3" "Select the name, conference, and stadium for all teams in the BIG 10 conference.\n\tUse map grouping on city and state."
                           b10-query))
     (print-coll b10)
     (separate)
-    (println (example-out "4" "Compute the natural join between team and game tables." nj-tg-query))
+    (println (example-out "4" "Compute the natural join between team and game tables. Use map grouping on date and stadium." nj-tg-query))
     (print-coll nj-tg)
     (separate)
-    (println (example-out "5" "Return the home points, away points, home team, away team, and stadium for every game where the home team won." htw-query))
+    (println (example-out "5" "Return the home points, away points, home team, away team, and stadium for every game where the home team won.\n\tUse map grouping on home team and away team." htw-query))
     (print-coll htw)
     (separate)
-    (println (example-out "6" "For every game, compute the average attendance, maximum home points, and minimum away points for each stadium." ss-query))
+    (println (example-out "6" "For every game, compute the average attendance, maximum home points, and minimum away points for each stadium.\n\tUse map grouping on stadium." ss-query))
     (print-coll ss)
     (separate)))
