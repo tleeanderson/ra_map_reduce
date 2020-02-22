@@ -4,8 +4,9 @@
 
 (def schema-path "schema/")
 
-(defn str-to-long [s]
+(defn str-to-long
   "Converts input string to java Long."
+  [s]
   (Long/parseLong s))
 
 (def type-map {:game {:home_points str-to-long 
@@ -15,8 +16,9 @@
                :stadium {:capacity str-to-long
                          :year_built str-to-long}})
 
-(defn records [in-str table]
+(defn records
   "Takes newline separated string with leading header and returns list of maps."
+  [in-str table]
   (let [[header & rows] (clojure.string/split-lines in-str)
         h (map keyword (clojure.string/split header #","))
         rs (map #(vector %1 (clojure.string/split %2 #","))
@@ -27,17 +29,19 @@
                          :table table)
                         :offset o)) rs)))
 
-(defn convert-rec-types [record tm]
+(defn convert-rec-types
   "Takes a record and type map and converts types in record according
    to type map."
+  [record tm]
   (apply assoc record (flatten (mapv (fn [[k f]]
                               [k (f (record k))])
                                      (tm (keyword (record :table)))))))
 
-(defn data-records [path table]
+(defn data-records
   "Takes a path to a csv file and table name and returns list of maps
    where each map is a record from the table. Types are mapped according
    to type-map."
+  [path table]
   (let [full-path (str path table ".csv")
         recs (records (slurp (io/resource full-path)) table)]
     (if (contains? (set (keys type-map)) (keyword table))
@@ -45,9 +49,10 @@
             (convert-rec-types r type-map)) recs)
       recs)))
 
-(defn map-reduce [data map-func reduce-func]
+(defn map-reduce
   "Takes data, map function, reduce function, and mimics map reduce
    behavior on the data stream."
+  [data map-func reduce-func]
   (let [flat-lis (flatten data)
         map-stage (map (fn [mr]
                          (map-func mr)) flat-lis)
@@ -60,13 +65,13 @@
                             (reduce-func k v)) group-stage)]
     reduce-stage))
 
-(defn grab-records [mr-out]
+(defn grab-records
   "Takes output of map reduce and changes shape such that map
    records are in flat."
+  [mr-out]
   (flatten (map second mr-out)))
 
-(defn passed-records [sel-mr-out]
+(defn passed-records
+  "Gets passed records from sel-mr-out."
+  [sel-mr-out]
   (second (first (filter #(= (first %) "passed") sel-mr-out))))
-
-(defn raw-mr [mr-out]
-  mr-out)

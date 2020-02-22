@@ -3,57 +3,70 @@
   (:require [ra-map-reduce.model :as model])
   (:require [ra-map-reduce.query :as query]))
 
-(defn game-data []
+(defn game-data
   "Read in records from game table."
+  []
   (model/data-records model/schema-path "game"))
-(defn team-data []
+
+(defn team-data
   "Read in records from team table."
+  []
   (model/data-records model/schema-path "team"))
-(defn stadium-data []
+
+(defn stadium-data
   "Read in records from stadium table."
+  []
   (model/data-records model/schema-path "stadium"))
-(defn conference-data []
+
+(defn conference-data
   "Read in records from conference table."
+  []
   (model/data-records model/schema-path "conference"))
 
-(defn add-team-offsets [td]
+(defn add-team-offsets
   "Takes team data and adds offsets for all records in table."
+  [td]
   (query/agg-group nil {:offset (fn [vs]
-                                  (reduce + vs))} td model/raw-mr))
+                                  (reduce + vs))} td identity))
 
-(defn home-team-points-attendance [gd]
+(defn home-team-points-attendance
   "Sums the home points and attendance for each home team group in
    game table."
+  [gd]
   (query/agg-group #{:home_team} {:home_points (fn [vs]
                                                  (reduce + vs))
                                   :attendance (fn [vs]
-                                                (reduce + vs))} gd model/raw-mr))
+                                                (reduce + vs))} gd identity))
 
-(defn select-big10-conf [td]
+(defn select-big10-conf
   "Filters the team table by conference and returns only teams in the
    big10. GBR."
+  [td]
   (query/project (query/select td (fn [r]
                      (= (r :conference) "BIG 10")) model/passed-records) #{:name :conference :stadium}
-                 [:city :state] model/raw-mr))
+                 [:city :state] identity))
 
-(defn nj-team-game [td gd]
+(defn nj-team-game
   "Natural join between team and game tables."
+  [td gd]
   (query/project (query/join :table (fn [r]
                        (= (r :name) (r :home_team))) td gd model/passed-records)
-                 #{:home_team :away_team :home_points :away_points} [:date :stadium] model/raw-mr))
+                 #{:home_team :away_team :home_points :away_points} [:date :stadium] identity))
 
-(defn home-team-wins [td gd]
+(defn home-team-wins
   "Computes statistics for every game where the home team won."
+  [td gd]
   (let [nj (query/project (query/join :table (fn [r]
                        (= (r :name) (r :home_team))) td gd model/passed-records)
-                 #{:home_team :away_team :home_points :away_points :stadium} [:date :city] model/raw-mr)]
+                 #{:home_team :away_team :home_points :away_points :stadium} [:date :city] identity)]
     (query/project
      (query/select (model/grab-records nj) (fn [r]
                        (> (r :home_points) (r :away_points))) model/passed-records)
-     #{:home_points :away_points :home_team :away_team :stadium} [:home_team :away_team] model/raw-mr)))
+     #{:home_points :away_points :home_team :away_team :stadium} [:home_team :away_team] identity)))
 
-(defn stadium-stats [td gd]
+(defn stadium-stats
   "Computes stats for every game per stadium group."
+  [td gd]
   (let [nj (query/project (query/join :table (fn [r]
                        (= (r :name) (r :home_team))) td gd model/passed-records) #{:home_points
                                                                                    :away_points
@@ -65,19 +78,22 @@
                                   :away_points (fn [vs]
                                                  (reduce min vs))
                                   :attendance (fn [vs]
-                                                 (float (/ (reduce + vs) (count vs))))} nj model/raw-mr)))
+                                                 (float (/ (reduce + vs) (count vs))))} nj identity)))
 
-(defn example-out [ex-num descr query]
+(defn example-out
   "Creates example output for each query."
+  [ex-num descr query]
   (str "Example " ex-num ": " descr "\n\nEquivalent SQL:\n" query "\n\nMapReduce: "))
 
-(defn print-coll [coll]
+(defn print-coll
   "Print out collection."
+  [coll]
   (doseq [item coll]
     (println "\t" item)))
 
-(defn separate []
+(defn separate
   "Returns a separator string."
+  []
   (println (str "\n" (apply str (repeat 100 "-")) "\n")))
 
 (def stadium-stats-fq [stadium-stats
