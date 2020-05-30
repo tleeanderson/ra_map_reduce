@@ -1,7 +1,8 @@
 # Implementation of RA operators via Map and Reduce Functions
 
 Shows off the implementation of the RA operators via map and reduce functions which are
-submitted to a simulated MapReduce system.
+submitted to a simulated MapReduce system. Please read **paper.pdf** for an in depth analysis
+of the system herein.
 
 ## Build
 You must have Leiningen installed to build this application. Please visit this link for installation
